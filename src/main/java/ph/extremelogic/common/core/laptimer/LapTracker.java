@@ -46,6 +46,7 @@ public class LapTracker {
 
     /**
      * Get lap count based on the size of the list.
+     *
      * @return Lap count
      */
     protected int getLapCount() {

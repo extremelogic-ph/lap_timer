@@ -50,73 +50,22 @@ public final class LapTimer {
      * Time millis constant.
      */
     private static final int TIME_MILLIS = 1000;
-
-    /**
-     * State of the timer.
-     */
-    private enum State {
-        /**
-         * Initial state.
-         */
-        UNSTARTED {
-            @Override
-            boolean isStarted() {
-                return false;
-            }
-
-            @Override
-            boolean isStopped() {
-                return true;
-            }
-        },
-        /**
-         * Running state.
-         */
-        RUNNING {
-            @Override
-            boolean isStarted() {
-                return true;
-            }
-
-            @Override
-            boolean isStopped() {
-                return false;
-            }
-        },
-        /**
-         * Stopped state.
-         */
-        STOPPED {
-            @Override
-            boolean isStarted() {
-                return false;
-            }
-
-            @Override
-            boolean isStopped() {
-                return true;
-            }
-        };
-
-        abstract boolean isStarted();
-
-        abstract boolean isStopped();
-    }
-
-    /**
-     * Lap tracker object for tags.
-     */
-    private final Map<String, LapTracker> lapTracker;
-
     /**
      * Instance object for this class.
      */
     private static LapTimer instance;
-
+    /**
+     * Lap tracker object for tags.
+     */
+    private final Map<String, LapTracker> lapTracker;
     /**
      * Timer stage.
      */
     private LapTimer.State timerState = LapTimer.State.UNSTARTED;
+
+    private LapTimer() {
+        lapTracker = new HashMap<>();
+    }
 
     /**
      * Get the object instance.
@@ -130,10 +79,6 @@ public final class LapTimer {
         return instance;
     }
 
-    private LapTimer() {
-        lapTracker = new HashMap<>();
-    }
-
     /**
      * Reset time for tag.
      *
@@ -141,9 +86,7 @@ public final class LapTimer {
      */
     public void resetTrackTime(final String tag) {
         if (this.timerState == State.RUNNING) {
-            if (lapTracker.containsKey(tag)) {
-                lapTracker.remove(tag);
-            }
+            lapTracker.remove(tag);
         } else {
             throw new IllegalStateException("Timer is not running.");
         }
@@ -381,5 +324,57 @@ public final class LapTimer {
             throw new IllegalStateException("Timer is not stopped.");
         }
         return timeUnit.convert(time, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * State of the timer.
+     */
+    private enum State {
+        /**
+         * Initial state.
+         */
+        UNSTARTED {
+            @Override
+            boolean isStarted() {
+                return false;
+            }
+
+            @Override
+            boolean isStopped() {
+                return true;
+            }
+        },
+        /**
+         * Running state.
+         */
+        RUNNING {
+            @Override
+            boolean isStarted() {
+                return true;
+            }
+
+            @Override
+            boolean isStopped() {
+                return false;
+            }
+        },
+        /**
+         * Stopped state.
+         */
+        STOPPED {
+            @Override
+            boolean isStarted() {
+                return false;
+            }
+
+            @Override
+            boolean isStopped() {
+                return true;
+            }
+        };
+
+        abstract boolean isStarted();
+
+        abstract boolean isStopped();
     }
 }

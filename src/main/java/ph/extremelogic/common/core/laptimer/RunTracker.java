@@ -44,6 +44,7 @@ public class RunTracker {
 
     /**
      * Time difference.
+     *
      * @return difference of start time and end time.
      */
     public long getTimeDiff() {
