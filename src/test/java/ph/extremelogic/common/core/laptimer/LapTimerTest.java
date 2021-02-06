@@ -8,34 +8,53 @@ public class LapTimerTest {
     @Test
     void testSimpleLapTimer() throws InterruptedException {
         var lapTimer = LapTimer.getInstance();
-        var key = "simple";
+        var tag = "simple";
         var delay = 1000L;
-        lapTimer.starTimer(key);
+        lapTimer.starTimer(tag);
+        assertTrue(lapTimer.isStarted(tag));
+        assertFalse(lapTimer.isStopped(tag));
         Thread.sleep(delay);
-        lapTimer.stopTimer(key);
+        lapTimer.stopTimer(tag);
+        assertFalse(lapTimer.isStarted(tag));
+        assertTrue(lapTimer.isStopped(tag));
 
-        assertTrue(lapTimer.getTotalTime(key) > delay);
-        assertTrue(lapTimer.getAverageTime(key) > delay);
-        assertTrue(lapTimer.getDiffTrackTime(key) > delay);
-        assertTrue(lapTimer.getAverageTimePerLap(key) > delay);
-        assertEquals(1, lapTimer.getLapCount(key));
+        assertTrue(lapTimer.getTotalTime(tag) > delay);
+        assertTrue(lapTimer.getAverageTime(tag) > delay);
+        assertTrue(lapTimer.getDiffTrackTime(tag) > delay);
+        assertTrue(lapTimer.getAverageTimePerLap(tag) > delay);
+        assertEquals(1, lapTimer.getLapCount(tag));
     }
 
     @Test
     void testInLoop() throws InterruptedException {
         var lapTimer = LapTimer.getInstance();
-        var key = "loop";
+        var tag = "loop";
         var delay = 100L;
         var lapCount = 10;
+        var tagInner = "inner";
 
         for (var x = 0; x < lapCount; x++) {
-            lapTimer.starTimer(key);
+            lapTimer.starTimer(tag);
+            assertTrue(lapTimer.isStarted(tag));
+            assertFalse(lapTimer.isStopped(tag));
             Thread.sleep(delay);
-            lapTimer.stopTimer(key);
-            assertEquals(x + 1, lapTimer.getLapCount(key));
+            for (var y = 0; y < lapCount; y++) {
+                lapTimer.starTimer(tagInner);
+                assertTrue(lapTimer.isStarted(tagInner));
+                assertFalse(lapTimer.isStopped(tagInner));
+                Thread.sleep(delay);
+                lapTimer.stopTimer(tagInner);
+                assertFalse(lapTimer.isStarted(tagInner));
+                assertTrue(lapTimer.isStopped(tagInner));
+            }
+            lapTimer.stopTimer(tag);
+            assertFalse(lapTimer.isStarted(tag));
+            assertTrue(lapTimer.isStopped(tag));
+            assertEquals(x + 1, lapTimer.getLapCount(tag));
         }
-        assertTrue(lapTimer.getTotalTime(key) > (delay * lapCount));
-        assertEquals(lapCount, lapTimer.getLapCount(key));
+        assertTrue(lapTimer.getTotalTime(tag) > (delay * lapCount) * 2);
+        assertTrue(lapTimer.getTotalTime(tagInner) > (delay * lapCount * lapCount));
+        assertEquals(lapCount, lapTimer.getLapCount(tag));
     }
 
     @Test

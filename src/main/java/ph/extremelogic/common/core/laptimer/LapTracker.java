@@ -52,4 +52,6 @@ public class LapTracker {
     protected int getLapCount() {
         return lapTimeAll != null ? lapTimeAll.size() : 0;
     }
+
+    private LapTimer.State state = LapTimer.State.UNSTARTED;
 }

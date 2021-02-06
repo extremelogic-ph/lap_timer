@@ -58,10 +58,6 @@ public final class LapTimer {
      * Lap tracker object for tags.
      */
     private final Map<String, LapTracker> lapTracker;
-    /**
-     * Timer stage.
-     */
-    private LapTimer.State timerState = LapTimer.State.UNSTARTED;
 
     private LapTimer() {
         lapTracker = new HashMap<>();
@@ -85,7 +81,7 @@ public final class LapTimer {
      * @param tag Timer tag name.
      */
     public void resetTrackTime(final String tag) {
-        if (this.timerState == State.RUNNING) {
+        if (getState(tag) == State.RUNNING) {
             lapTracker.remove(tag);
         } else {
             throw new IllegalStateException("Timer is not running.");
@@ -119,8 +115,8 @@ public final class LapTimer {
      *
      * @return true if started.
      */
-    public boolean isStarted() {
-        return timerState.isStarted();
+    public boolean isStarted(String tag) {
+        return getState(tag).isStarted();
     }
 
     /**
@@ -128,8 +124,17 @@ public final class LapTimer {
      *
      * @return true if stopped.
      */
-    public boolean isStopped() {
-        return timerState.isStopped();
+    public boolean isStopped(String tag) {
+        return getState(tag).isStopped();
+    }
+
+    private LapTimer.State getState(String tag) {
+        if (lapTracker.containsKey(tag)) {
+            // stopped or running
+            return lapTracker.get(tag).getState();
+        } else {
+            return State.UNSTARTED;
+        }
     }
 
     /**
@@ -139,7 +144,7 @@ public final class LapTimer {
      * @return Time when started.
      */
     public long starTimer(final String tag) {
-        if (this.timerState == State.RUNNING) {
+        if (getState(tag) == State.RUNNING) {
             throw new IllegalStateException("Timer already started.");
         }
         var currentTime = System.currentTimeMillis();
@@ -156,9 +161,9 @@ public final class LapTimer {
         run.setStartTime(currentTime);
         run.setLap(lapCount);
         lap.setLapTime(run);
+        lap.setState(State.RUNNING);
         lapTracker.put(tag, lap);
 
-        this.timerState = LapTimer.State.RUNNING;
         return currentTime;
     }
 
@@ -170,7 +175,7 @@ public final class LapTimer {
      */
     public long stopTimer(final String tag) {
         var currentTime = 0L;
-        if (this.timerState != LapTimer.State.RUNNING) {
+        if (getState(tag) != LapTimer.State.RUNNING) {
             throw new IllegalStateException("Timer is not running. ");
         }
         currentTime = System.currentTimeMillis();
@@ -187,8 +192,8 @@ public final class LapTimer {
         }
         runTrackerList.add(runTracker);
         lap.setLapTimeAll(runTrackerList);
+        lap.setState(State.STOPPED);
         lapTracker.put(tag, lap);
-        this.timerState = LapTimer.State.STOPPED;
         return currentTime;
     }
 
@@ -199,7 +204,7 @@ public final class LapTimer {
      * @return Lap count
      */
     public int getLapCount(final String tag) {
-        if (this.timerState == State.UNSTARTED) {
+        if (getState(tag) == State.UNSTARTED) {
             throw new IllegalStateException("Timer not started.");
         }
         return lapTracker.get(tag).getLapCount();
@@ -213,7 +218,7 @@ public final class LapTimer {
      * @return Time difference.
      */
     public long getDiffTrackTime(final String tag, final TimeUnit timeUnit) {
-        if (this.timerState == LapTimer.State.STOPPED) {
+        if (getState(tag) == LapTimer.State.STOPPED) {
             var time = 0L;
             if (lapTracker.containsKey(tag)) {
                 var lap = lapTracker.get(tag).getLapTime();
@@ -256,7 +261,7 @@ public final class LapTimer {
      */
     public long getTotalTime(final String tag, final TimeUnit timeUnit) {
         var totalTime = 0L;
-        if (this.timerState == LapTimer.State.STOPPED) {
+        if (getState(tag).isStopped()) {
             if (lapTracker != null && lapTracker.containsKey(tag)) {
                 totalTime = lapTracker.get(tag).getTotalTime();
             }
@@ -286,7 +291,7 @@ public final class LapTimer {
     public long getAverageTimePerLap(final String tag,
                                      final TimeUnit timeUnit) {
         var average = 0L;
-        if (this.timerState == LapTimer.State.STOPPED) {
+        if (getState(tag).isStopped()) {
             var lap = lapTracker.get(tag);
             var lapList = lap.getLapTimeAll();
             if (lapList != null && !lapList.isEmpty()) {
@@ -318,7 +323,7 @@ public final class LapTimer {
      */
     public long getAverageTime(final String tag, final TimeUnit timeUnit) {
         var time = 0L;
-        if (this.timerState == LapTimer.State.STOPPED) {
+        if (getState(tag).isStopped()) {
             time = getAverageTimePerLap(tag, timeUnit) * getLapCount(tag);
         } else {
             throw new IllegalStateException("Timer is not stopped.");
@@ -329,7 +334,7 @@ public final class LapTimer {
     /**
      * State of the timer.
      */
-    private enum State {
+    protected enum State {
         /**
          * Initial state.
          */

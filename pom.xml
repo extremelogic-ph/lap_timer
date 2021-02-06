@@ -135,7 +135,7 @@
 
     <name>Extreme Logic Lap Timer</name>
     <url>https:\\www.extremelogic.ph</url>
-    <description>Common core library used by Extreme Logic</description>
+    <description>Common core timer library used by Extreme Logic</description>
     <scm>
         <url>https://github.com/extremelogic-ph/lap_timer</url>
         <developerConnection>Virgilio So</developerConnection>
